@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use semver::Version;
-use serde::{de::Error, Deserializer, Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 /// Versions info from [Meta::versions]
 pub struct VersionInfo {
