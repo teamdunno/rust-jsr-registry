@@ -1,6 +1,6 @@
 [package]
 name = "rust-jsr-registry"
-description = "An unofficial JSR api wrapper for rust. JSR is an npm-like registry owned by Deno"
+description = "An unofficial JSR api wrapper for rust. JSR is a npm-like registry owned by Deno"
 repository = "https://github.com/teamdunno/rust-jsr-registry"
 version = "0.1.0"
 edition = "2021"
