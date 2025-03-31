@@ -1,10 +1,9 @@
 use anyhow::Result;
-use reqwest::Client;
+use reqwest::{Client, StatusCode};
 use serde::de::DeserializeOwned;
 use url::Url;
 
 use crate::{meta::{Meta, MetaBuilder}, package::{Package, PackageBuilder}, DEFAULT_URL};
-
 pub struct FetcherBuilder {
     /// The host url (defaults to `https://jsr.io`)
     pub host: &'static Url,
@@ -59,29 +58,49 @@ impl Fetcher {
     /// # Errors
     ///
     /// Throws [reqwest::Error] or [serde_json::Error]
-    async fn fetcher<T: DeserializeOwned>(&self, path: impl Into<String>) -> Result<T> {
-        let req = self.client.get(path.into()).send().await;
-        if let Err(v) = req {
+    async fn fetcher<T: DeserializeOwned>(&self, path: impl Into<String>) -> Result<Option<T>> {
+        let url = format!("{}{}", &*DEFAULT_URL, path.into());
+        let res_raw = self.client.get(url).send().await;
+        if let Err(v) = res_raw {
             return Err(v.without_url().into());
         }
-        let body = req.unwrap().text().await;
+    
+        let res = res_raw.unwrap();
+    
+        // Clone status before consuming `res`
+        let status = res.status();
+        if let Err(v) = res.error_for_status_ref() { // Use `error_for_status_ref()` instead
+            let err = v.without_url();
+            if status == StatusCode::NOT_FOUND {
+                return Ok(None);
+            } else {
+                return Err(err.into());
+            }
+        }
+    
+        // Now `res` is still available, so we can read the body
+        let body = res.text().await;
         match body {
-            Err(v) => return Err(v.without_url().into()),
+            Err(v) => Err(v.without_url().into()),
             Ok(v) => {
-                let value = v.to_string();
-                let parsed: T = serde_json::from_str(&value)?;
-                return Ok(parsed);
+                let parsed: T = serde_json::from_str(&v)?; // Deserialize JSON
+                Ok(Some(parsed))
             }
         }
     }
+    
     /// Get package metadata, contains version details, and more
+    /// 
+    /// Returns `Some(None)` if the server returned `404`. 
+    /// If the other failed status code returned, `Err` will be returned.
+    /// Else, `Some(Meta)` returned normally as success
     ///
     /// See https://jsr.io/docs/api#package-version
     /// 
     /// # Errors
     ///
     /// Throws [reqwest::Error] or [serde_json::Error]
-    pub async fn get_meta<'a>(&self, builder: &MetaBuilder) -> Result<Meta> {
+    pub async fn get_meta<'a>(&self, builder: &MetaBuilder) -> Result<Option<Meta>> {
         return self
             .fetcher::<Meta>(format!("@{}/{}/meta.json", builder.scope, builder.name))
             .await;
@@ -96,11 +115,18 @@ impl Fetcher {
     pub async fn get_metas<'a>(&self, builders: &[MetaBuilder]) -> Result<Vec<Meta>> {
         let mut results = Vec::with_capacity(builders.len()); 
         for each in builders {
-            results.push(self.get_meta(each).await?)
+            let res = self.get_meta(each).await?;
+            if let Some(v) = res {
+                results.push(v);
+            }
         }
         Ok(results)
     }
     /// Get package **with** specific version on it. 
+    /// 
+    /// Returns `Some(None)` if the server returned `404`. 
+    /// If the other failed status code returned, `Err` will be returned.
+    /// Else, `Some(Package)` returned normally as success
     /// 
     /// See https://jsr.io/docs/api#package-version-metadata
     /// 
@@ -109,7 +135,7 @@ impl Fetcher {
     /// # Errors
     ///
     /// Throws [reqwest::Error] or [serde_json::Error]
-    pub async fn get_package<'a>(&self, builder: &PackageBuilder) -> Result<Package> {
+    pub async fn get_package<'a>(&self, builder: &PackageBuilder) -> Result<Option<Package>> {
         return self
             .fetcher::<Package>(format!("@{}/{}/{}_meta.json", builder.scope, builder.name, builder.version))
             .await;
@@ -124,7 +150,10 @@ impl Fetcher {
     pub async fn get_packages<'a>(&self, builders: &[PackageBuilder]) -> Result<Vec<Package>> {
         let mut results = Vec::with_capacity(builders.len()); 
         for each in builders {
-            results.push(self.get_package(each).await?)
+            let res = self.get_package(each).await?;
+            if let Some(v) = res {
+                results.push(v);
+            }
         }
         Ok(results)
     }

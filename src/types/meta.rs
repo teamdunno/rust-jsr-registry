@@ -1,5 +1,6 @@
 use std::collections::HashMap;
-use serde::{Deserialize, Serialize};
+use semver::Version;
+use serde::{de::Error, Deserializer, Deserialize, Serialize, Serializer};
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 /// Versions info from [Meta::versions]
 pub struct VersionInfo {
@@ -31,19 +32,20 @@ impl MetaBuilder {
         return Self {
             scope:"".to_string(),
             name:"".to_string()
-        }
+        };
     }
     /// Set package scope
     pub fn set_scope(mut self, value:String) -> Self {
         self.scope = value;
-        return self
+        return self;
     }
     /// Set package name
     pub fn set_name(mut self, value:String) -> Self {
         self.name = value;
-        return self
+        return self;
     }
-} 
+}
+
 /// The package metadata result
 /// 
 /// See https://jsr.io/docs/api#package-metadata
@@ -62,9 +64,9 @@ pub struct Meta {
     /// `object` from `@dunno/object`
     pub name: String,
     /// Latest version from one of [Meta::versions]
-    pub latest: String,
+    pub latest: Version,
     /// List of versions founded from metadata
-    pub versions: HashMap<String, VersionInfo>,
+    pub versions: HashMap<Version, VersionInfo>,
 }
 impl PartialEq for Meta {
     fn eq(&self, other:&Self) -> bool {

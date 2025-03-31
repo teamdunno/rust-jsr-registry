@@ -5,5 +5,5 @@ use url::Url;
 
 /// Default JSR url as static object. Need deref to use it
 pub static DEFAULT_URL: Lazy<Url> = Lazy::new(|| {
-    Url::parse("https://jsr.com").expect("Failed to parse default url for rust-jsr-registry")
+    Url::parse("https://jsr.io").expect("Failed to parse default url for rust-jsr-registry")
 });
