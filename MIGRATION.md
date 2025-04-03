@@ -35,7 +35,7 @@ None.
 **Author:** [vintheweirdass](https://github.com/vintheweirdass)
 
 **Rationale:**
-This migration changes the function (`from_info`) so it can support not only `MetaBuilder`, but `Meta`, `Package`, and so on
+This migration changes the function (`from_info`) so it can support not only `MetaBuilder`, but `Meta`, `PackageBuilder`, and so on
 
 **Changes:**
 * `from_meta_builder` is replaced with `from_info`
