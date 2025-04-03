@@ -8,29 +8,22 @@ pub mod one {}
 pub mod two {
     use serde::{Deserialize, Serialize};
 
+    use crate::{priv_as_ref, priv_enum_derived};
+
     /// Module graph 2
-    #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
     pub struct ModuleGraph2 {
         /// Dependencies that are used in the file
         pub dependencies: Option<Vec<Dependency>>,
     }
-    /// Dependency type, as enum
-    #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-    #[serde(rename_all = "lowercase")]
-    pub enum DependencyType {
-        Static,
-        Dynamic
-    }
-    /// Dependency kind, as enum
-    #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-    #[serde(rename_all = "lowercase")]
-    pub enum DependencyKind {
-        Import,
-        Export
-    }    
-    /// Dependencies from [ModuleGraph2]
-    #[derive(Debug, Clone, Serialize, Deserialize)]
+    priv_as_ref!(ModuleGraph2);
+    
+    priv_enum_derived!(DependencyType, Static, Dynamic);
+    priv_enum_derived!(DependencyKind, Import, Export);
+
+    #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
     #[serde(rename_all = "camelCase")]
+    /// Dependencies from [ModuleGraph2]
     pub struct Dependency {
         /// Dependency type ("importing from `import` keyword (static) or `import()` function (dynamic)?")
         pub r#type: DependencyType,
@@ -46,4 +39,15 @@ pub mod two {
         /// we assumed that the number is for the opening & closing path of [Dependency::specifier].
         pub specifier_range: ((u32, u32), (u32, u32))
     }
+    impl PartialOrd for Dependency {
+        fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+            self.specifier_range.partial_cmp(&other.specifier_range)
+        }
+    }
+    impl Ord for Dependency {
+        fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+            self.specifier_range.cmp(&other.specifier_range)
+        }
+    }
+    priv_as_ref!(Dependency);
 }

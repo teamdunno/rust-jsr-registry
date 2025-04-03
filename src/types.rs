@@ -4,3 +4,5 @@ pub mod meta;
 pub mod package;
 /// Module graphs from JSR package metadata
 pub mod graph;
+/// `scope` and `name` derivative
+pub mod info;

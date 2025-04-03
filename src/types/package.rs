@@ -1,14 +1,17 @@
-use semver::Version;
+use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use url::Url;
 use std::collections::HashMap;
 
-use super::{graph::two::ModuleGraph2, meta::MetaBuilder};
+use crate::{priv_as_ref, priv_from_info, priv_impl_getinfo};
+
+use super::{graph::two::ModuleGraph2};
 
 /// The package result
 ///
 /// See https://jsr.io/docs/api#package-version-metadata
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Package {
     /// List of file manifests in one package
@@ -52,7 +55,7 @@ pub struct Package {
     /// JSR will kept it like that
     pub exports:HashMap<String, String>
 }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Manifest {
     /// Object size
     pub size: u64,
@@ -88,29 +91,74 @@ impl PackageBuilder {
             name: "".to_string(),
         };
     }
-    /// Set package scope
-    ///
-    /// For ergonomic use, you could use the combination of [PackageBuilder::from_meta_builder] and [MetaBuilder]
-    pub fn set_scope(mut self, value: String) -> Self {
-        self.scope = value;
-        return self;
-    }
-    /// Set package name
-    ///
-    /// For ergonomic use, you could use the combination of [PackageBuilder::from_meta_builder] and [MetaBuilder]
-    pub fn set_name(mut self, value: String) -> Self {
-        self.name = value;
-        return self;
-    }
     /// Set package version to choose
     pub fn set_version(mut self, value: Version) -> Self {
         self.version = value;
         return self;
     }
-    /// Set `scope` and `name` from [MetaBuilder]
-    pub fn from_meta_builder(mut self, builder: &MetaBuilder) -> Self {
-        self.scope = (&*builder.scope).to_string();
-        self.name = (&*builder.name).to_string();
-        return self;
+    priv_from_info!(version: Version::new(0, 0, 0));
+}
+impl PartialEq for PackageBuilder {
+    fn eq(&self, other: &Self) -> bool {
+        return self.scope == other.scope && self.name == other.name && self.version.to_string() == other.version.to_string();
     }
 }
+impl Eq for PackageBuilder {}
+priv_as_ref!(PackageBuilder);
+priv_impl_getinfo!(PackageBuilder);
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct NpmCompDist {
+    /// The package tarball from npm
+    #[serde(with = "crate::serde::url")]
+    pub tarball:Url,
+    /// The shasum hash from package
+    pub shasum:String,
+    /// Package integrity (as sha-256)
+    pub integrity:String,
+}
+priv_as_ref!(NpmCompDist);
+/// The package result
+///
+/// See https://jsr.io/docs/api#package-version-metadata
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct NpmCompPackage {
+    /// JSR-to-npm equivalent package name
+    /// 
+    /// Note: this is different than normal [Meta::name].
+    /// 
+    /// If your [MetaBuilder] contains like this
+    /// 
+    /// ```
+    /// MetaBuilder::new()
+    ///     .set_scope("dunno")
+    ///     .set_name("object")
+    /// ```
+    /// 
+    /// It would be added like this, right?
+    /// 
+    /// ```
+    /// {
+    ///     scope: "dunno",
+    ///     name: "object"
+    /// }
+    /// ```
+    /// 
+    /// Since the scope (in JSR) is actually fake on npm, it would be listed as
+    /// 
+    /// `@<jsr provider scope>/<jsr package scope>__<jsr package name>`
+    /// 
+    /// So, this [Self::name] is equivalent to
+    /// 
+    /// `@jsr/dunno__object`
+    pub name:String,
+    /// The version currently selected
+    pub version:Version,
+    /// Package desription
+    pub description:String,
+    /// Distribution info
+    pub dist:NpmCompDist,
+    /// Timestamp for package activities
+    pub dependencies:HashMap<String, VersionReq>
+}
+priv_as_ref!(NpmCompPackage);
