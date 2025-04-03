@@ -28,6 +28,7 @@ pub struct MetaBuilder {
     /// `object` from `@dunno/object`
     pub name: String,
 }
+/// Creates a builder for [Meta]
 impl MetaBuilder {
     /// Creates a builder for [Meta]
     #[allow(clippy::new_without_default)]
@@ -105,6 +106,7 @@ impl Eq for Meta {}
 priv_impl_getinfo!(Meta);
 priv_as_ref!(Meta); 
 
+/// Distribution tags for [NpmCompMeta::dist_tags]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NpmCompDistTags {
     /// Latest version of the package

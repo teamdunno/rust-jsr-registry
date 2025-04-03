@@ -55,6 +55,8 @@ pub struct Package {
     /// JSR will kept it like that
     pub exports:HashMap<String, String>
 }
+
+/// File manifests from [Package::manifest]
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Manifest {
     /// Object size
@@ -81,6 +83,7 @@ pub struct PackageBuilder {
     /// Package version, parsed as [semver::Version]
     pub version: Version,
 }
+/// Creates a builder for [Package]
 impl PackageBuilder {
     /// Creates a builder for [Package]
     #[allow(clippy::new_without_default)]
@@ -106,6 +109,8 @@ impl PartialEq for PackageBuilder {
 impl Eq for PackageBuilder {}
 priv_as_ref!(PackageBuilder);
 priv_impl_getinfo!(PackageBuilder);
+
+/// Distribution infos for [NpmCompPackage::dist]
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct NpmCompDist {
     /// The package tarball from npm
