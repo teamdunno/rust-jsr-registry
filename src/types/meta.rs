@@ -1,11 +1,10 @@
 use std::collections::HashMap;
 use semver::Version;
 use serde::{Deserialize, Serialize};
-use thiserror::Error;
 use crate::{fetcher::GetProviderScope, priv_as_ref, priv_from_info, priv_impl_getinfo};
 pub use crate::serde::{VersionDateTimeMap, TimeInfo as NpmCompTimeInfo};
 
-use super::package::NpmCompPackage;
+use super::{error::NpmCompParseError, package::NpmCompPackage};
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 /// Versions info from [Meta::versions]
 pub struct VersionInfo {
@@ -28,13 +27,6 @@ pub struct MetaBuilder {
     ///
     /// `object` from `@dunno/object`
     pub name: String,
-}
-#[derive(Error, Debug)]
-pub enum NpmCompParseError {
-    #[error("Input does not start with @{}/", .0)]
-    DosentStartWithPrefix(String),
-    #[error("Input does not have the correct format (scope__name)")]
-    CompFormat,
 }
 impl MetaBuilder {
     /// Creates a builder for [Meta]

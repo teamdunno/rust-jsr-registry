@@ -6,3 +6,5 @@ pub mod package;
 pub mod graph;
 /// `scope` and `name` derivative
 pub mod info;
+/// Errors that are used in this package. Mostly are using [anyhow::Error]
+pub mod error;
