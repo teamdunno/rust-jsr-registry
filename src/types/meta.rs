@@ -39,7 +39,7 @@ impl MetaBuilder {
     }
     /// Convert JSR-to-npm equivalent package name to normal one
     /// 
-    /// It needs either [FetcherBuilder] or [crate::fetcher::Fetcher] since it needs [FetcherBuilder::provider_scope] to detect the scope owned in npm-side
+    /// It needs either [crate::fetcher::FetcherBuilder] or [crate::fetcher::Fetcher] since it needs [crate::fetcher::FetcherBuilder::provider_scope] to detect the scope owned in npm-side
     /// 
     /// ## Panics
     /// 
@@ -49,7 +49,7 @@ impl MetaBuilder {
     }
     /// Convert JSR-to-npm equivalent package name to normal one, as [Result]
     /// 
-    /// It needs either [FetcherBuilder] or [crate::fetcher::Fetcher] since it needs [FetcherBuilder::provider_scope] to detect the scope owned in npm-side
+    /// It needs either [crate::fetcher::FetcherBuilder] or [crate::fetcher::Fetcher] since it needs [crate::fetcher::FetcherBuilder::provider_scope] to detect the scope owned in npm-side
     pub fn try_from_npm_comp_name<T:GetProviderScope>(gts:impl AsRef<T>, value:impl Into<String>) -> Result<Self, NpmCompParseError> {
         let builder_ref = gts.as_ref();
         let prov = builder_ref.get_provider_scope().to_string();
