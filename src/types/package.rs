@@ -56,7 +56,7 @@ pub struct Package {
     pub exports:HashMap<String, String>
 }
 
-/// File manifests from [Package::manifest]
+/// File manifests for [Package::manifest]
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Manifest {
     /// Object size
